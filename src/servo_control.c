@@ -62,8 +62,8 @@ void servo_smooth(servo* motor, float angle) {
  * please set data in motors correctly before initialize
  * 
  * servos_init() - initialize servo motors
- * @quantity: quantity of address of servo motors
- * @motors: array of servo motors
+ * @quantity: quantity of servo motors
+ * @motors: array of address of servo motors
  */
 void servos_init(uint quantity, servo** motors) {
     for(uint i = 0; i < quantity; i++) {
