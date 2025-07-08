@@ -46,7 +46,8 @@ pico_enable_stdio_usb(pico-robotic-arm 1)
 
 # Add the standard library to the build
 target_link_libraries(pico-robotic-arm
-        pico_stdlib)
+        pico_stdlib
+        hardware_pwm)
 
 # Add the standard include files to the build
 target_include_directories(pico-robotic-arm PRIVATE

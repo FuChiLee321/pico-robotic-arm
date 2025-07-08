@@ -3,7 +3,6 @@
 
 
 #define SERVO_PWM_WRAP 40000
-#define SERVO_SMOOTH_DELAY_us 20
 #ifndef SYSTEM_CLOCK
 #define SYSTEM_CLOCK 125000000
 #endif
@@ -18,8 +17,21 @@
 typedef struct servo {
     uint pin, min_duty, max_duty, period;
     float angle;
-}servo;
+} servo;
 
+/**
+ * PICK_SERVOS() - 
+ * @picks: (servo**) to store picked servo's address
+ * @servos: array of all servos to pick
+ * @pick_nums: indexes of picked servos
+ * @pick_size: quantity of picked servos
+ */
+#define PICK_SERVOS(picks, servos, pick_nums, pick_size)            \
+do{                                                                 \
+    for(int SERVO_ITER = 0; SERVO_ITER < pick_size; SERVO_ITER++) { \
+        picks[SERVO_ITER] = &servos[pick_nums[SERVO_ITER]];         \
+    }                                                               \
+}while(0)
 
 /**
  * please set data in motor correctly before initialize
@@ -47,26 +59,26 @@ void servo_smooth(servo* motor, float angle);
  * please set data in motors correctly before initialize
  * 
  * servos_init() - initialize servo motors
- * @quantity: quantity of servo motors
- * @motors: array of servo motors
+ * @quantity: quantity of address of servo motors
+ * @motors: array of address of servo motors
  */
-void servos_init(uint quantity, servo* motors) ;
+void servos_init(uint quantity, servo** motors);
 
 /**
  * servos_set() - set angles of multiple servo motors
  * @quantity: quantity of servo motors
- * @motors: array of servo motors
+ * @motors: array of address of servo motors
  * @angles: array of target angles
  */
-void servos_set(uint quantity, servo* motors, float *angles) ;
+void servos_set(uint quantity, servo** motors, float *angles);
 
 /**
  * servos_smooth() - smooth move multiple servo motors to angles
  * @quantity: quantity of servo motors
- * @motors: array of servo motors
+ * @motors: array of address of servo motors
  * @angles: array of target angles
  */
-void servos_smooth(uint quantity, servo* motors, float *angles) ;
+void servos_smooth(uint quantity, servo** motors, float *angles);
 
 
 #endif
