@@ -51,6 +51,12 @@ target_link_libraries(pico-robotic-arm
 # Add the standard include files to the build
 target_include_directories(pico-robotic-arm PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
+        ${CMAKE_CURRENT_LIST_DIR}/src/include
+)
+
+#Add source files to the build
+target_sources(pico-robotic-arm PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/src/servo_control.c
 )
 
 pico_add_extra_outputs(pico-robotic-arm)
