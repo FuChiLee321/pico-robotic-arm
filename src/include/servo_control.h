@@ -22,12 +22,25 @@ typedef struct servo {
 } servo;
 
 /**
+ * Macro to set information of servo from source.
+ *
+ * @destination: Servo to set (servo*)
+ * @source: Servo to copy information (servo*)
+ */
+#define SERVO_INFO_COPY(destination, source)    \
+do{                                             \
+    destination->min_duty = source->min_duty;   \
+    destination->max_duty = source->max_duty;   \
+    destination->period = source->period;       \
+}while(0)
+
+/**
  * Macro to select specific servos from an array and store their addresses.
  *
  * @picks: Output array to hold pointers to selected servos (servo**)
- * @servos: Array of all servo instances
- * @pick_nums: Array of indexes of servos to pick
- * @pick_size: Number of servos to pick
+ * @servos: Array of all servo instances (servo*)
+ * @pick_nums: Array of indexes of servos to pick (uint*)
+ * @pick_size: Number of servos to pick (int)
  */
 #define PICK_SERVOS(picks, servos, pick_nums, pick_size)            \
 do{                                                                 \
