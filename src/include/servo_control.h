@@ -1,18 +1,22 @@
 #ifndef SERVO_CONTROL_H
 #define SERVO_CONTROL_H
 
-
+// PWM wrap value for the servo control
 #define SERVO_PWM_WRAP 40000
+
+// Default system clock frequency (Hz)
 #ifndef SYSTEM_CLOCK
 #define SYSTEM_CLOCK 125000000
 #endif
 
 /**
- * @pin: gpio pin with hardware pwm
- * @angle: servo motor angle (degree)
- * @period: period of pwm (us)
- * @min_duty: pwm duty at 0 degree (us)
- * @max_duty: pwm duty at 180 degree (us)
+ * Struct representing a servo motor.
+ * 
+ * @pin: GPIO pin connected to the servo, must support hardware PWM
+ * @angle: Current angle of the servo in degrees
+ * @period: PWM signal period (us)
+ * @min_duty: PWM duty cycle at 0 degree (us)
+ * @max_duty: PWM duty cycle at 180 degree (us)
  */
 typedef struct servo {
     uint pin, min_duty, max_duty, period;
@@ -20,11 +24,12 @@ typedef struct servo {
 } servo;
 
 /**
- * PICK_SERVOS() - 
- * @picks: (servo**) to store picked servo's address
- * @servos: array of all servos to pick
- * @pick_nums: indexes of picked servos
- * @pick_size: quantity of picked servos
+ * Macro to select specific servos from an array and store their addresses.
+ *
+ * @picks: Output array to hold pointers to selected servos (servo**)
+ * @servos: Array of all servo instances
+ * @pick_nums: Array of indices of servos to pick
+ * @pick_size: Number of servos to pick
  */
 #define PICK_SERVOS(picks, servos, pick_nums, pick_size)            \
 do{                                                                 \
@@ -34,51 +39,55 @@ do{                                                                 \
 }while(0)
 
 /**
- * please set data in motor correctly before initialize
+ * Initializes a single servo motor.
+ * Make sure all fields in the motor are correctly set before calling this.
  * 
- * servo_init() - initialize servo motor
- * @motor: address of servo motor
+ * @motor: Pointer to a servo struct
  */
 void servo_init(servo* motor);
 
 /**
- * servo_set() - set angle of servo motor
- * @motor: address of servo motor
- * @angle: target angle
+ * Sets the angle of a single servo motor.
+ * 
+ * @motor: Pointer to a servo struct
+ * @angle: Desired angle in degrees
  */
 void servo_set(servo* motor, float angle);
 
 /**
- * servo_smooth() - smooth move single servo motor to angle
- * @motor: address of servo motor
- * @angle: target angle
+ * Moves a single servo motor smoothly to the target angle.
+ * 
+ * @motor: Pointer to a servo struct
+ * @angle: Desired angle in degrees
  */
 void servo_smooth(servo* motor, float angle);
 
 /**
- * please set data in motors correctly before initialize
+ * Initializes multiple servo motors.
+ * Make sure all servo structs are properly set before calling this.
  * 
- * servos_init() - initialize servo motors
- * @quantity: quantity of servo motors
- * @motors: array of address of servo motors
+ * @number: Number of servos
+ * @motors: Array of pointers to servo structs
  */
-void servos_init(uint quantity, servo** motors);
+void servos_init(uint number, servo** motors);
 
 /**
- * servos_set() - set angles of multiple servo motors
- * @quantity: quantity of servo motors
- * @motors: array of address of servo motors
- * @angles: array of target angles
+ * Sets angles for multiple servos at once.
+ * 
+ * @number: Number of servos
+ * @motors: Array of pointers to servo structs
+ * @angles: Array of target angles in degrees
  */
-void servos_set(uint quantity, servo** motors, float *angles);
+void servos_set(uint number, servo** motors, float *angles);
 
 /**
- * servos_smooth() - smooth move multiple servo motors to angles
- * @quantity: quantity of servo motors
- * @motors: array of address of servo motors
- * @angles: array of target angles
+ * Smoothly moves multiple servos to their target angles.
+ * 
+ * @number: Number of servos
+ * @motors: Array of pointers to servo structs
+ * @angles: Array of target angles in degrees
  */
-void servos_smooth(uint quantity, servo** motors, float *angles);
+void servos_smooth(uint number, servo** motors, float *angles);
 
 
-#endif
+#endif  // SERVO_CONTROL_H
