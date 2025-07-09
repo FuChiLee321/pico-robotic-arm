@@ -11,10 +11,10 @@ const uint servo_angle_limit = 0;       // Angle limit for servos in degrees
 const uint max_servo_move_ms = 2000;    // Maximum time (ms) for a servo smooth move
 
 /**
- * Initializes a single servo motor.
- * Make sure all fields in the motor are correctly set before calling this.
+ * Initialize a single servo motor.
+ * Make sure all fields in motor are correctly set before calling this.
  * 
- * @motor: Pointer to a servo struct
+ * @motor: Servo to initialize
  */
 void servo_init(servo* motor) {
     gpio_set_function(motor->pin, GPIO_FUNC_PWM);
@@ -28,10 +28,10 @@ void servo_init(servo* motor) {
 }
 
 /**
- * Sets the angle of a single servo motor.
+ * Set the angle of a single servo motor.
  * 
- * @motor: Pointer to a servo struct
- * @angle: Desired angle in degrees
+ * @motor: Servo to set angle
+ * @angle: Target angle in degrees
  */
 void servo_set(servo* motor, float angle) {
     if(angle < servo_angle_limit)
@@ -45,10 +45,10 @@ void servo_set(servo* motor, float angle) {
 }
 
 /**
- * Moves a single servo motor smoothly to the target angle.
+ * Move a single servo motor smoothly to the target angle.
  * 
- * @motor: Pointer to a servo struct
- * @angle: Desired angle in degrees
+ * @motor: Servo to move
+ * @angle: Target angle in degrees
  */
 void servo_smooth(servo* motor, float angle) {
     float start_angle = motor->angle;
@@ -66,11 +66,11 @@ void servo_smooth(servo* motor, float angle) {
 }
 
 /**
- * Initializes multiple servo motors.
+ * Initialize multiple servo motors.
  * Make sure all servo structs are properly set before calling this.
  * 
- * @number: Number of servos
- * @motors: Array of pointers to servo structs
+ * @number: Number of servos to initialize
+ * @motors: Servos to initialize
  */
 void servos_init(uint number, servo** motors) {
     for(uint i = 0; i < number; i++) {
@@ -89,11 +89,11 @@ void servos_init(uint number, servo** motors) {
 }
 
 /**
- * Sets angles for multiple servos at once.
+ * Set angles for multiple servos.
  * 
- * @number: Number of servos
- * @motors: Array of pointers to servo structs
- * @angles: Array of target angles in degrees
+ * @number: Number of servos to set angles
+ * @motors: Servos to set angles
+ * @angles: Target angles in degrees
  */
 void servos_set(uint number, servo** motors, float *angles) {
     for(uint i = 0; i < number; i++) {
@@ -102,11 +102,11 @@ void servos_set(uint number, servo** motors, float *angles) {
 }
 
 /**
- * Smoothly moves multiple servos to their target angles.
+ * Smoothly move multiple servos to target angles.
  * 
- * @number: Number of servos
- * @motors: Array of pointers to servo structs
- * @angles: Array of target angles in degrees
+ * @number: Number of servos to move
+ * @motors: Servos to move
+ * @angles: Target angles in degrees
  */
 void servos_smooth(uint number, servo** motors, float *angles) {
     float start_angles[number];
