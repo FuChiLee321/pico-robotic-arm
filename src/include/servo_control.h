@@ -27,11 +27,11 @@ typedef struct servo {
  * @destination: Servo to set (servo*)
  * @source: Servo to copy information (servo*)
  */
-#define SERVO_INFO_COPY(destination, source)    \
-do{                                             \
-    destination->min_duty = source->min_duty;   \
-    destination->max_duty = source->max_duty;   \
-    destination->period = source->period;       \
+#define SERVO_INFO_COPY(destination, source)        \
+do{                                                 \
+    (destination)->min_duty = (source)->min_duty;   \
+    (destination)->max_duty = (source)->max_duty;   \
+    (destination)->period = (source)->period;       \
 }while(0)
 
 /**
@@ -45,7 +45,7 @@ do{                                             \
 #define PICK_SERVOS(picks, servos, pick_nums, pick_size)            \
 do{                                                                 \
     for(int SERVO_ITER = 0; SERVO_ITER < pick_size; SERVO_ITER++) { \
-        picks[SERVO_ITER] = &servos[pick_nums[SERVO_ITER]];         \
+        (picks)[SERVO_ITER] = &(servos)[(pick_nums)[SERVO_ITER]];   \
     }                                                               \
 }while(0)
 
