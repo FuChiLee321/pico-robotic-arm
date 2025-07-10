@@ -17,8 +17,11 @@
  * @max_duty: Duty cycle at 180 degree (us)
  */
 typedef struct servo {
-    uint pin, min_duty, max_duty, period;
+    uint pin;
     float angle;
+    uint period;
+    uint min_duty;
+    uint max_duty;
 } servo;
 
 /**
@@ -42,7 +45,7 @@ do{                                                 \
  * @pick_nums: Array of indexes of servos to pick (uint*)
  * @pick_size: Number of servos to pick (int)
  */
-#define PICK_SERVOS(picks, servos, pick_nums, pick_size)            \
+#define SERVOS_PICK(picks, servos, pick_nums, pick_size)            \
 do{                                                                 \
     for(int SERVO_ITER = 0; SERVO_ITER < pick_size; SERVO_ITER++) { \
         (picks)[SERVO_ITER] = &(servos)[(pick_nums)[SERVO_ITER]];   \

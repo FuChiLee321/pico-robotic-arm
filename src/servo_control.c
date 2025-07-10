@@ -8,7 +8,7 @@
 const uint servo_angle_limit = 0;       // Angle limit for servos in degrees
                                         // Valid servo angle range will be from [limit, 180-limit]
 
-const uint max_servo_move_ms = 2000;    // Maximum time (ms) for a servo smooth move
+const uint max_servo_move_ms = 5000;    // Maximum time (ms) for a servo smooth move
 
 /**
  * Initialize a single servo motor.
@@ -53,10 +53,10 @@ void servo_set(servo* motor, float angle) {
 void servo_smooth(servo* motor, float angle) {
     float start_angle = motor->angle;
     float angle_difference = angle - motor->angle;
-    uint steps = angle_difference / 180 * max_servo_move_ms / motor->period;
+    uint steps = (uint)fabs(angle_difference / 180 * 1e3 * max_servo_move_ms / motor->period);
     for(uint step = 1; step < steps; step++) {
         // Calculate the smooth transition ratio using a cosine function for easing effect
-        float ratio = 0.5 + cosf(M_PI * step / steps) / 2;
+        float ratio = 0.5 - cosf(M_PI * step / steps) / 2;
         float delta = angle_difference * ratio;
         servo_set(motor, start_angle + delta);
         sleep_us(motor->period);
@@ -118,7 +118,7 @@ void servos_smooth(uint number, servo** motors, float *angles) {
     for(uint i = 0; i < number; i++) {
         start_angles[i] = motors[i]->angle;
         angle_differences[i] = angles[i] - start_angles[i];
-        uint steps = angle_differences[i] / 180 * max_servo_move_ms / motors[i]->period;
+        uint steps = (uint)fabs((angle_differences[i] / 180) * (1e3 * max_servo_move_ms / motors[i]->period));
         if(steps > max_steps)
             max_steps = steps;
         if(motors[i]->period > max_period)
@@ -127,7 +127,8 @@ void servos_smooth(uint number, servo** motors, float *angles) {
     // Perform the smooth transition in steps
     for(uint step = 1; step < max_steps; step++) {
         // Calculate the smooth transition ratio using a cosine function for easing effect
-        float ratio = 0.5 + cosf(M_PI * step / max_steps) / 2;
+        float ratio = 0.5 - cosf(M_PI * step / max_steps) / 2;
+        // Set the servo angles based on the start angles and angle differences with ratio
         for(uint i = 0; i < number; i++) {
             float delta = angle_differences[i] * ratio;
             servo_set(motors[i], start_angles[i] + delta);

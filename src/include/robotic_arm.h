@@ -4,8 +4,8 @@
 #include "servo_control.h"
 
 /**
- * @number: Number of servos in robotic arm
- * @servos: Servos in robotic arm
+ * @number: Number of servos in robotic arm (uint8_t)
+ * @servos: Servos in robotic arm (servo*)
  */
 typedef struct robotic_arm {
     uint8_t number;
@@ -13,9 +13,9 @@ typedef struct robotic_arm {
 } robotic_arm;
 
 /**
- * @number: Number of servos to move
- * @indexes: Indexes of servos to move
- * @angles: Target angles
+ * @number: Number of servos to move (uint8_t)
+ * @indexes: Indexes of servos to move (uint8_t*)
+ * @angles: Target angles (float*)
  */
 typedef struct robotic_arm_signal {
     uint8_t number;
@@ -39,7 +39,7 @@ for(tmp = 0, servo_ptr = &(robot_ptr)->servos[tmp]; servo_ptr; tmp += 1, servo_p
  * 
  * @number: Number of servos in robotic arm
  */
-robotic_arm* new_robotic_arm(uint8_t number);
+robotic_arm* robotic_arm_create(uint8_t number);
 
 /**
  * Set GPIO pin of a robotic arm servo.
@@ -48,7 +48,7 @@ robotic_arm* new_robotic_arm(uint8_t number);
  * @index: Index of servo in robotic arm to set
  * @pin: GPIO pin connected to the servo, must support hardware PWM
  */
-void robotic_arm_set_servo_pin(robotic_arm* robot, uint8_t index, uint pin);
+void robotic_arm_setting_servo_pin(robotic_arm* robot, uint8_t index, uint pin);
 
 /**
  * Set information of a robotic arm servo from source.
@@ -57,7 +57,7 @@ void robotic_arm_set_servo_pin(robotic_arm* robot, uint8_t index, uint pin);
  * @index: Index of servo in robotic arm to set
  * @source: Servo to copy information
  */
-void robotic_arm_set_servo_info(robotic_arm* robot, uint8_t index, servo* source);
+void robotic_arm_setting_servo_info(robotic_arm* robot, uint8_t index, servo* source);
 
 /**
  * Set a robotic arm servo to angle, not smoothly.
@@ -66,7 +66,7 @@ void robotic_arm_set_servo_info(robotic_arm* robot, uint8_t index, servo* source
  * @index: Index of servo in robotic arm to set
  * @angle: Target angle
  */
-void robotic_arm_set_servo_angle(robotic_arm* robot, uint8_t index, float angle);
+void robotic_arm_setting_servo_angle(robotic_arm* robot, uint8_t index, float angle);
 
 /**
  * Start robotic arm.
@@ -89,7 +89,7 @@ void robotic_arm_move_servo(robotic_arm* robot, uint8_t index, float angle);
  * Smoothly move multiple robotic arm servos to angles at once.
  * 
  * @robot: Robotic arm to move
- * @signal: Control signals
+ * @signal: Control signal
  */
 void robotic_arm_move(robotic_arm* robot, robotic_arm_signal* signal);
 
@@ -109,11 +109,28 @@ void robotic_arm_print_servo(robotic_arm* robot, uint8_t index);
 void robotic_arm_print(robotic_arm* robot);
 
 /**
- * Free memory malloced by new_robotic_arm().
+ * Free memory malloced by robotic_arm_create().
  * 
  * @robot: Robotic arm to free
  */
-void free_robotic_arm(robotic_arm* robot);
+void robotic_arm_free(robotic_arm* robot);
+
+/**
+ * Transfer string to robotic arm control signal.
+ * Make sure signal->indexes and signal->angles are allocated before calling this.
+ * 
+ * @signal: Robotic arm control signal to set
+ * @str: String to transfer, format is "number index angle index angle ..."
+ */
+void robotic_arm_signal_from_string(robotic_arm_signal* signal, char* str);
+
+/**
+ * Smoothly move robotic arm servos by string.
+ * 
+ * @robot: Robotic arm to move
+ * @str: String to move robotic arm, format is "number index angle index angle ..."
+ */
+void robotic_arm_move_by_string(robotic_arm* robot, char* str);
 
 
 #endif  // ROBOTIC_ARM_H
