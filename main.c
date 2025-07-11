@@ -11,9 +11,7 @@ int main()
         sleep_ms(100); // Wait for USB serial connection
     }
 
-    sleep_ms(1000); // Wait for servos to initialize
-
-    // Make servo information for MG996R servo
+    // Make servo information
     servo mg996r;
     mg996r.min_duty = 500;
     mg996r.max_duty = 2500;
@@ -26,12 +24,10 @@ int main()
         return 1;
     }
     for(uint8_t i = 0; i < robot_arm->number; i++) {
-        robotic_arm_setting_servo_pin(robot_arm, i, i + 16); // Set GPIO pins 16 to 21 for servos
-        robotic_arm_setting_servo_info(robot_arm, i, &mg996r);
-        robotic_arm_setting_servo_angle(robot_arm, i, 90.0f); // Initialize all servos to 90 degrees
-        printf("Servo %d allocated at %p\n", i, (void*)&robot_arm->servos[i]);
+        robotic_arm_set_servo_pin(robot_arm, i, i + 16); // Set GPIO pins 16 to 21 for servos
+        robotic_arm_set_servo_info(robot_arm, i, &mg996r);
+        robotic_arm_set_servo_angle(robot_arm, i, 90.0f); // Initialize all servos to 90 degrees
     }
-    printf("Robotic arm initialize with %d servos.\n", robot_arm->number);
     robotic_arm_start(robot_arm);
     printf("Robotic arm initialized with %d servos.\n", robot_arm->number);
 
@@ -57,7 +53,7 @@ int main()
         
         // Read the input command
         int i = 1;
-        input[0] = command_start; // Store the first character
+        input[0] = command_start;
         while (i < sizeof(input) - 1) {
             int c = getchar_timeout_us(0);
             if (c == PICO_ERROR_TIMEOUT || c == '\n' || c == '\r') {
@@ -69,22 +65,6 @@ int main()
         
         // Print robotic arm status if input is "status"
         if (input[0] == 'p' || input[0] == 'P') {
-            robotic_arm_print(robot_arm);
-            printf("Enter 'p' to print status\n or command (format: number index angle index angle ...) to move: ");
-            continue;
-        }
-        if(input[0] == 't' || input[0] == 'T') {
-            // Test command to move all servos to 60 degrees
-            printf("Test command received, moving all servos to 60 degrees.\n");
-            robotic_arm_move_by_string(robot_arm, "6 0 60 1 60 2 60 3 60 4 60 5 60");
-            robotic_arm_print(robot_arm);
-            printf("Enter 'p' to print status\n or command (format: number index angle index angle ...) to move: ");
-            continue;
-        }
-        if(input[0] == 'r' || input[0] == 'R') {
-            // Reset command to move all servos to 90 degrees
-            printf("Reset command received, moving all servos to 90 degrees.\n");
-            robotic_arm_move_by_string(robot_arm, "6 0 90 1 90 2 90 3 90 4 90 5 90");
             robotic_arm_print(robot_arm);
             printf("Enter 'p' to print status\n or command (format: number index angle index angle ...) to move: ");
             continue;

@@ -32,7 +32,7 @@ robotic_arm* robotic_arm_create(uint8_t number) {
  * @index: Index of servo in robotic arm to set
  * @pin: GPIO pin connected to the servo, must support hardware PWM
  */
-void robotic_arm_setting_servo_pin(robotic_arm* robot, uint8_t index, uint pin) {
+void robotic_arm_set_servo_pin(robotic_arm* robot, uint8_t index, uint pin) {
     if(index >= robot->number) {
         fprintf(stderr, "Index out of range.\n");
         return ;
@@ -47,7 +47,7 @@ void robotic_arm_setting_servo_pin(robotic_arm* robot, uint8_t index, uint pin) 
  * @index: Index of servo in robotic arm to set
  * @source: Servo to copy information
  */
-void robotic_arm_setting_servo_info(robotic_arm* robot, uint8_t index, servo* source) {
+void robotic_arm_set_servo_info(robotic_arm* robot, uint8_t index, servo* source) {
     if(index >= robot->number) {
         fprintf(stderr, "Index out of range.\n");
         return ;
@@ -56,13 +56,13 @@ void robotic_arm_setting_servo_info(robotic_arm* robot, uint8_t index, servo* so
 }
 
 /**
- * Setting a robotic arm servo to angle, only for initial.
+ * Set a robotic arm servo to angle immediately.
  * 
  * @robot: Robotic arm to set
  * @index: Index of servo in robotic arm to set
  * @angle: Target angle
  */
-void robotic_arm_setting_servo_angle(robotic_arm* robot, uint8_t index, float angle) {
+void robotic_arm_set_servo_angle(robotic_arm* robot, uint8_t index, float angle) {
     if(index >= robot->number) {
         fprintf(stderr, "Index out of range.\n");
         return ;
