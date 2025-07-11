@@ -12,6 +12,7 @@
 /**
  * @pin: GPIO pin connected to the servo, must support hardware PWM
  * @angle: Current angle of the servo in degrees
+ * @angle_range: Range of angle the servo can move, usually 180 degrees
  * @period: PWM signal period (us)
  * @min_duty: Duty cycle at 0 degree (us)
  * @max_duty: Duty cycle at 180 degree (us)
@@ -19,6 +20,7 @@
 typedef struct servo {
     uint pin;
     float angle;
+    float angle_range;
     uint period;
     uint min_duty;
     uint max_duty;
@@ -30,11 +32,12 @@ typedef struct servo {
  * @destination: Servo to set (servo*)
  * @source: Servo to copy information (servo*)
  */
-#define SERVO_INFO_COPY(destination, source)        \
-do{                                                 \
-    (destination)->min_duty = (source)->min_duty;   \
-    (destination)->max_duty = (source)->max_duty;   \
-    (destination)->period = (source)->period;       \
+#define SERVO_INFO_COPY(destination, source)            \
+do{                                                     \
+    (destination)->angle_range = (source)->angle_range; \
+    (destination)->period = (source)->period;           \
+    (destination)->min_duty = (source)->min_duty;       \
+    (destination)->max_duty = (source)->max_duty;       \
 }while(0)
 
 /**

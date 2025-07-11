@@ -13,11 +13,12 @@ int main()
 
     // Make servo information
     servo mg996r;
+    mg996r.angle_range = 180.0f;
     mg996r.min_duty = 500;
     mg996r.max_duty = 2500;
     mg996r.period = 20000; // 20ms period
 
-    // Initialize the robotic arm
+    // Initialize the robotic arm that has 6 servos
     robotic_arm* robot_arm = robotic_arm_create(6);
     if (!robot_arm) {
         fprintf(stderr, "Failed to create robotic arm.\n");

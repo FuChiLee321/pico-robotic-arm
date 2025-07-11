@@ -6,9 +6,9 @@
 
 
 const uint servo_angle_limit = 0;       // Angle limit for servos in degrees
-                                        // Valid servo angle range will be from [limit, 180-limit]
+                                        // Valid servo angle range will be from [limit, motor's angle_range-limit]
 
-const uint max_servo_move_ms = 5000;    // Maximum time (ms) for a servo smooth move
+const uint max_servo_move_ms = 2500;    // Maximum time (ms) for a servo smooth move
 
 /**
  * Calculate the number of steps needed for the smooth transition.
@@ -51,9 +51,9 @@ void servo_init(servo* motor) {
 void servo_set(servo* motor, float angle) {
     if(angle < servo_angle_limit)
         angle = servo_angle_limit;
-    else if(angle > 180 - servo_angle_limit)
-        angle = 180 - servo_angle_limit;
-    float duty = (motor->angle / 180) * (motor->max_duty - motor->min_duty) + motor->min_duty;
+    else if(angle > motor->angle_range - servo_angle_limit)
+        angle = motor->angle_range - servo_angle_limit;
+    float duty = (motor->angle / motor->angle_range) * (motor->max_duty - motor->min_duty) + motor->min_duty;
     uint16_t level = duty / motor->period * SERVO_PWM_WRAP;
     pwm_set_gpio_level(motor->pin, level);
     motor->angle = angle;
@@ -68,7 +68,7 @@ void servo_set(servo* motor, float angle) {
 void servo_smooth(servo* motor, float angle) {
     float start_angle = motor->angle;
     float angle_difference = angle - motor->angle;
-    uint steps = calculate_steps(angle_difference / 180, motor->period);
+    uint steps = calculate_steps(angle_difference / motor->angle_range, motor->period);
     for(uint step = 1; step < steps; step++) {
         // Calculate the smooth transition ratio using a cosine function for easing effect
         float ratio = calculate_smooth_ratio((float)step / steps);
@@ -133,7 +133,7 @@ void servos_smooth(uint number, servo** motors, float *angles) {
     for(uint i = 0; i < number; i++) {
         start_angles[i] = motors[i]->angle;
         angle_differences[i] = angles[i] - start_angles[i];
-        uint steps = calculate_steps(angle_differences[i] / 180, motors[i]->period);
+        uint steps = calculate_steps(angle_differences[i] / motors[i]->angle_range, motors[i]->period);
         if(steps > max_steps)
             max_steps = steps;
         if(motors[i]->period > max_period)
