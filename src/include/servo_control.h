@@ -11,19 +11,23 @@
 
 /**
  * @pin: GPIO pin connected to the servo, must support hardware PWM
- * @angle: Current angle of the servo in degrees
  * @angle_range: Range of angle the servo can move, usually 180 degrees
  * @period: PWM signal period (us)
  * @min_duty: Duty cycle at 0 degree (us)
  * @max_duty: Duty cycle at 180 degree (us)
+ * @angle: Current angle of the servo in degrees
+ * @angle_lower_bound: Limit of the lowest angle the servo can move
+ * @angle_upper_bound: Limit of the highest angle the servo can move
  */
 typedef struct servo {
     uint pin;
-    float angle;
     float angle_range;
     uint period;
     uint min_duty;
     uint max_duty;
+    float angle;
+    float angle_lower_bound;
+    float angle_upper_bound;
 } servo;
 
 /**
@@ -32,7 +36,7 @@ typedef struct servo {
  * @destination: Servo to set (servo*)
  * @source: Servo to copy information (servo*)
  */
-#define SERVO_INFO_COPY(destination, source)            \
+#define SERVO_DATASHEET_COPY(destination, source)            \
 do{                                                     \
     (destination)->angle_range = (source)->angle_range; \
     (destination)->period = (source)->period;           \
@@ -64,12 +68,40 @@ do{                                                                 \
 void servo_init(servo* motor);
 
 /**
- * Set the angle of a single servo motor.
+ * Set GPIO pin of a servo motor.
+ * 
+ * @motor: Servo to set pin
+ * @pin: GPIO pin connected to the servo, must support hardware PWM
+ */
+void servo_set_pin(servo* motor, uint pin);
+
+/**
+ * Set datasheet of a servo.
+ * 
+ * @motor: Servo to set
+ * @angle_range: Range of angle the servo can move, usually 180 degrees
+ * @period: PWM signal period (us)
+ * @min_duty: Duty cycle at 0 degree (us)
+ * @max_duty: Duty cycle at 180 degree (us)
+ */
+void servo_set_datasheet(servo* motor, float angle_range, uint period, uint min_duty, uint max_duty);
+
+/**
+ * Set limits for servo angles.
+ * 
+ * @motor: Servo to set limits
+ * @angle_lower_bound: Limit of the lowest angle the servo can move
+ * @angle_upper_bound: Limit of the highest angle the servo can move
+ */
+void servo_set_limits(servo* motor, float angle_lower_bound, float angle_upper_bound);
+
+/**
+ * Set the angle of a single servo motor immediately.
  * 
  * @motor: Servo to set angle
  * @angle: Target angle in degrees
  */
-void servo_set(servo* motor, float angle);
+void servo_set_angle(servo* motor, float angle);
 
 /**
  * Move a single servo motor smoothly to the target angle.
@@ -89,13 +121,13 @@ void servo_smooth(servo* motor, float angle);
 void servos_init(uint number, servo** motors);
 
 /**
- * Set angles for multiple servos.
+ * Set angles for multiple servos immediately.
  * 
  * @number: Number of servos to set angles
  * @motors: Servos to set angles
  * @angles: Target angles in degrees
  */
-void servos_set(uint number, servo** motors, float *angles);
+void servos_set_angle(uint number, servo** motors, float *angles);
 
 /**
  * Smoothly move multiple servos to target angles.

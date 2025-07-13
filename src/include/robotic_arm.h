@@ -51,13 +51,23 @@ robotic_arm* robotic_arm_create(uint8_t number);
 void robotic_arm_set_servo_pin(robotic_arm* robot, uint8_t index, uint pin);
 
 /**
- * Set information of a robotic arm servo from source.
+ * Set datasheet of a robotic arm servo from source.
  * 
  * @robot: Robotic arm to set
  * @index: Index of servo in robotic arm to set
- * @source: Servo to copy information
+ * @source: Servo to copy datasheet
  */
-void robotic_arm_set_servo_info(robotic_arm* robot, uint8_t index, servo* source);
+void robotic_arm_set_servo_datasheet(robotic_arm* robot, uint8_t index, servo* source);
+
+/**
+ * Set limits for a robotic arm servo.
+ * 
+ * @robot: Robotic arm to set
+ * @index: Index of servo in robotic arm to set
+ * @angle_lower_bound: Limit of the lowest angle the servo can move
+ * @angle_upper_bound: Limit of the highest angle the servo can move
+ */
+void robotic_arm_set_servo_limits(robotic_arm* robot, uint8_t index, float angle_lower_bound, float angle_upper_bound);
 
 /**
  * Set a robotic arm servo to angle immediately.

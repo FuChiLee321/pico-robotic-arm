@@ -12,11 +12,12 @@ int main()
     }
 
     // Make servo information
-    servo mg996r;
-    mg996r.angle_range = 180.0f;
-    mg996r.min_duty = 500;
-    mg996r.max_duty = 2500;
-    mg996r.period = 20000; // 20ms period
+    servo mg996r = {
+        .angle_range = 180.0f, // MG996R servo has a range of 180 degrees
+        .period = 20000,       // PWM period in microseconds (20ms)
+        .min_duty = 500,       // Minimum duty cycle for 0 degrees in microseconds
+        .max_duty = 2500,      // Maximum duty cycle for 180 degrees in microseconds
+    };
 
     // Initialize the robotic arm that has 6 servos
     robotic_arm* robot_arm = robotic_arm_create(6);
@@ -26,19 +27,21 @@ int main()
     }
     for(uint8_t i = 0; i < robot_arm->number; i++) {
         robotic_arm_set_servo_pin(robot_arm, i, i + 16); // Set GPIO pins 16 to 21 for servos
-        robotic_arm_set_servo_info(robot_arm, i, &mg996r);
+        robotic_arm_set_servo_datasheet(robot_arm, i, &mg996r);
+        robotic_arm_set_servo_limits(robot_arm, i, 0.0f, 180.0f);
         robotic_arm_set_servo_angle(robot_arm, i, 90.0f); // Initialize all servos to 90 degrees
     }
     robotic_arm_start(robot_arm);
     printf("Robotic arm initialized with %d servos.\n", robot_arm->number);
 
     // Initialize control signal for robotic arm
-    robotic_arm_signal control_signal;
     uint8_t control_servos[robot_arm->number];
     float target_angles[robot_arm->number];
-    control_signal.indexes = control_servos;
-    control_signal.angles = target_angles;
-    control_signal.number = 0;
+    robotic_arm_signal control_signal = {
+        .indexes = control_servos,
+        .angles = target_angles,
+        .number = 0
+    };
     printf("Control signal initialized.\n");
 
     char input[256];
