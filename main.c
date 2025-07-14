@@ -3,10 +3,14 @@
 #include "robotic_arm.h"
 #include "string.h"
 
-
+#define INPUT_UINT_EXIT -1
+#define INPUT_UINT_INVALID -2
+#define INPUT_UINT_PRINT -3
 /**
  * Get input and transform to number.
- * returns -1 if input is 'q' or 'Q' to indicate exit, -2 for invalid input.
+ * returns INPUT_UINT_EXIT (-1) if input is 'q' or 'Q' to indicate exit,
+ * INPUT_UINT_INVALID (-2) for invalid input, and INPUT_UINT_PRINT (-3) for
+ * printing current angles when input is 'p' or 'P'.
  */
 int get_input_uint() {
     int number = 0;
@@ -16,12 +20,19 @@ int get_input_uint() {
         input = getchar_timeout_us(0);
         sleep_ms(10); // Sleep to avoid busy waiting
     } while (input == PICO_ERROR_TIMEOUT || input == ' ' || input == '\n' || input == '\t');
-    if (input >= '0' && input <= '9')
+    switch (input) {
+    case '0' ... '9': // If input is a digit, start forming the number
         number = input - '0';
-    else if (input == 'q' || input == 'Q')
-        return -1;  // If input is 'q' or 'Q', return -1 to indicate exit
-    else
-        return -2;  // Invalid input, return -2
+        break;
+    case 'q':
+    case 'Q':
+        return INPUT_UINT_EXIT; // Exit on 'q' or 'Q'
+    case 'p':
+    case 'P':
+        return INPUT_UINT_PRINT; // Print current angles on 'p' or 'P'
+    default:
+        return INPUT_UINT_INVALID; // Invalid input, return -2
+    }
     while (true) {
         input = getchar_timeout_us(0);
         if (input >= '0' && input <= '9')
@@ -42,19 +53,18 @@ float get_input_float() {
     // Skip whitespace characters
     do {
         input = getchar_timeout_us(0);
-    } while (input == ' ' || input == '\n' || input == '\t');
+        sleep_ms(10); // Sleep to avoid busy waiting
+    } while (input == PICO_ERROR_TIMEOUT || input == ' ' || input == '\n' || input == '\t');
     if (input >= '0' && input <= '9')
         number = input - '0';
     else if (input == 'q' || input == 'Q')
         return -1.0f;  // If input is 'q' or 'Q', return -1.0f to indicate exit
-    else
+    else if(input != '.')
         return -2.0f;  // Invalid input, return -2.0f
-    while (true) {
+    while (input >= '0' && input <= '9') {
         input = getchar_timeout_us(0);
         if (input >= '0' && input <= '9')
             number = number * 10 + (input - '0');
-        else if (input == '.')
-            break; // Break on decimal point
     }
     if (input != '.')
         return number; // If no decimal point, return the integer part
@@ -99,8 +109,8 @@ void robotic_arm_starter(robotic_arm* robot_arm, servo* motor) {
 void robotic_arm_single_servo_mode(robotic_arm* robot_arm) {
     char select_tip[] = "Enter servo index (0 to %d) to control, or 'q' to exit: ";
     char angle_tip[] = "Enter 'i' to increase angle, 'd' to decrease angle, 'r' to reselect servo,\n"
-                        "  '*' to multiply delta angle by 2, '/' to divide delta angle by 2,\n"
-                        "  'p' to print current angles, or 'q' to exit: ";
+                        "    '*' to multiply delta angle by 2, '/' to divide delta angle by 2,\n"
+                        "    'p' to print current angles, or 'q' to exit: ";
     char show_delta[] = "Delta angle: %.2f\n";
     printf(select_tip, robot_arm->number - 1);
     while (true) {
@@ -197,16 +207,22 @@ void robotic_arm_multiple_servo_mode(robotic_arm* robot_arm) {
         .number = 0
     };
     char command_tip[] = "Enter command format: 'number index angle index angle ...',\n"
-                         "where 'number' is the number of servos to control, 'index' is the servo index (0 to %d),\n"
-                         "and 'angle' is the target angle for that servo. Enter 'q' to exit.\n";
+                         "    'number' is the number of servos to control,\n"
+                         "    'index' is the servo index (0 to %d),\n"
+                         "    'angle' is the target angle for that servo.\n"
+                         "Enter 'p' to print current angles, or 'q' to exit.\n";
     printf(command_tip, robot_arm->number - 1);
     while (true) {
         int input = get_input_uint();
-        if (input == -1) {
+        if (input == INPUT_UINT_EXIT) {
             printf("Exiting multiple servo mode.\n");
             return; // Exit on 'q' or 'Q'
-        } else if (input < 1 || input > robot_arm->number || input == -2) {
-            printf("Invalid number of servos. Please enter a number between 1 and %d.\n", robot_arm->number);
+        } else if(input == INPUT_UINT_PRINT) {
+            robotic_arm_print(robot_arm);
+            printf(command_tip, robot_arm->number - 1);
+            continue; // Print current angles and prompt again
+        } else if (input < 1 || input > robot_arm->number) {
+            printf("Invalid number of servos. Please the number should between 1 and %d.\n", robot_arm->number);
             do { input = getchar_timeout_us(0); } while (input != PICO_ERROR_TIMEOUT); // Clear input buffer
             printf(command_tip, robot_arm->number - 1);
             continue; // Invalid input, prompt again
@@ -214,6 +230,7 @@ void robotic_arm_multiple_servo_mode(robotic_arm* robot_arm) {
         control_signal.number = (uint8_t)input; // Set number of servos to control
         for (uint8_t i = 0; i < control_signal.number; i++) {
             int index = get_input_uint();
+            printf("Selected servo index: %d\n", index);
             if (index < 0 || index >= robot_arm->number) {
                 printf("Invalid servo index %d. Please enter an index between 0 and %d.\n", index, robot_arm->number - 1);
                 do { index = getchar_timeout_us(0); } while (index != PICO_ERROR_TIMEOUT); // Clear input buffer
@@ -222,14 +239,21 @@ void robotic_arm_multiple_servo_mode(robotic_arm* robot_arm) {
             }
             control_signal.indexes[i] = (uint8_t)index; // Store servo index
             float angle = get_input_float();
-            if (angle < robot_arm->servos[index].angle_lower_bound) {
+            if(angle < 0.0f) {
+                printf("Nagetive angle is not allowed.\n");
+                do { index = getchar_timeout_us(0); } while (index != PICO_ERROR_TIMEOUT); // Clear input buffer
+                printf(command_tip, robot_arm->number - 1);
+                break; // Invalid angle, prompt again
+            } else if (angle < robot_arm->servos[index].angle_lower_bound) {
                 angle = robot_arm->servos[index].angle_lower_bound; // Clamp to lower bound
             } else if (angle > robot_arm->servos[index].angle_upper_bound) {
                 angle = robot_arm->servos[index].angle_upper_bound; // Clamp to upper bound
             }
+            printf("Selected target angle: %.2f\n", angle);
             control_signal.angles[i] = angle; // Store target angle
         }
         // Move servos to target angles
+        printf("Moving servos to target angles...\n");
         robotic_arm_move(robot_arm, &control_signal);
     }
 }
@@ -321,7 +345,7 @@ int main()
     printf("Robotic arm initialized with %d servos.\n", robot_arm->number);
 
     char mode_tip[] = "Enter 's' for single servo control, 'm' for multiple servos control,\n"
-                        " 'c' for costom control, or 'p' to print current angles.\n";
+                      "    'c' for costom control, or 'p' to print current angles.\n";
     printf(mode_tip);
 
     while (true) {
