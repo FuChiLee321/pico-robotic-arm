@@ -1,6 +1,8 @@
 #ifndef SERVO_CONTROL_H
 #define SERVO_CONTROL_H
 
+#include "pico/stdlib.h"
+
 // PWM wrap value for the servo control
 #define SERVO_PWM_WRAP 40000
 
