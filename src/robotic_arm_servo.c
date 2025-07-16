@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "robotic_arm.h"
+#include "robotic_arm_servo.h"
 #include <stdlib.h>
 
 
@@ -22,6 +22,7 @@ robotic_arm* robotic_arm_create(uint8_t number) {
         free(robot);
         return NULL;
     }
+    robot->position_required = NULL; // Initialize position_required to NULL
     return robot;
 }
 
