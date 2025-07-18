@@ -10,8 +10,8 @@ const uint max_servo_move_ms = 5000;    // Maximum time (ms) for a servo smooth 
 /**
  * Calculate the number of steps needed for the smooth transition.
  * 
- * @angle_ratio: Ratio of difference and maximum angle (0 to 1)
- * @period: Period of PWM signal (us)
+ * @param angle_ratio: Ratio of difference and maximum angle (0 to 1)
+ * @param period: Period of PWM signal (us)
  */
 uint calculate_steps(float angle_ratio, uint period) {
     return (uint)fabs(angle_ratio * 1e3 * max_servo_move_ms / period);
@@ -26,7 +26,7 @@ float calculate_smooth_ratio(float ratio_of_steps) {
  * Initialize a single servo motor.
  * Make sure all fields in motor are correctly set before calling this.
  * 
- * @motor: Servo to initialize
+ * @param motor: Servo to initialize
  */
 void servo_init(servo* motor) {
     gpio_set_function(motor->pin, GPIO_FUNC_PWM);
@@ -42,8 +42,8 @@ void servo_init(servo* motor) {
 /**
  * Set GPIO pin of a servo motor.
  * 
- * @motor: Servo to set pin
- * @pin: GPIO pin connected to the servo, must support hardware PWM
+ * @param motor: Servo to set pin
+ * @param pin: GPIO pin connected to the servo, must support hardware PWM
  */
 void servo_set_pin(servo* motor, uint pin) {
     motor->pin = pin;
@@ -52,11 +52,11 @@ void servo_set_pin(servo* motor, uint pin) {
 /**
  * Set datasheet of a servo.
  * 
- * @motor: Servo to set
- * @angle_range: Range of angle the servo can move, usually 180 degrees
- * @period: PWM signal period (us)
- * @min_duty: Duty cycle at 0 degree (us)
- * @max_duty: Duty cycle at 180 degree (us)
+ * @param motor: Servo to set
+ * @param angle_range: Range of angle the servo can move, usually 180 degrees
+ * @param period: PWM signal period (us)
+ * @param min_duty: Duty cycle at 0 degree (us)
+ * @param max_duty: Duty cycle at 180 degree (us)
  */
 void servo_set_datasheet(servo* motor, float angle_range, uint period, uint min_duty, uint max_duty) {
     motor->angle_range = angle_range;
@@ -68,9 +68,9 @@ void servo_set_datasheet(servo* motor, float angle_range, uint period, uint min_
 /**
  * Set limits for servo angles.
  * 
- * @motor: Servo to set limits
- * @angle_lower_bound: Limit of the lowest angle the servo can move
- * @angle_upper_bound: Limit of the highest angle the servo can move
+ * @param motor: Servo to set limits
+ * @param angle_lower_bound: Limit of the lowest angle the servo can move
+ * @param angle_upper_bound: Limit of the highest angle the servo can move
  */
 void servo_set_limits(servo* motor, float angle_lower_bound, float angle_upper_bound) {
     motor->angle_lower_bound = angle_lower_bound;
@@ -80,8 +80,8 @@ void servo_set_limits(servo* motor, float angle_lower_bound, float angle_upper_b
 /**
  * Set the angle of a single servo motor immediately.
  * 
- * @motor: Servo to set angle
- * @angle: Target angle in degrees
+ * @param motor: Servo to set angle
+ * @param angle: Target angle in degrees
  */
 void servo_set_angle(servo* motor, float angle) {
     if(angle < motor->angle_lower_bound)
@@ -97,8 +97,8 @@ void servo_set_angle(servo* motor, float angle) {
 /**
  * Move a single servo motor smoothly to the target angle.
  * 
- * @motor: Servo to move
- * @angle: Target angle in degrees
+ * @param motor: Servo to move
+ * @param angle: Target angle in degrees
  */
 void servo_smooth(servo* motor, float angle) {
     float start_angle = motor->angle;
@@ -119,8 +119,8 @@ void servo_smooth(servo* motor, float angle) {
  * Initialize multiple servo motors.
  * Make sure all servo structs are properly set before calling this.
  * 
- * @number: Number of servos to initialize
- * @motors: Servos to initialize
+ * @param number: Number of servos to initialize
+ * @param motors: Servos to initialize
  */
 void servos_init(uint number, servo** motors) {
     for(uint i = 0; i < number; i++) {
@@ -141,9 +141,9 @@ void servos_init(uint number, servo** motors) {
 /**
  * Set angles for multiple servos immediately.
  * 
- * @number: Number of servos to set angles
- * @motors: Servos to set angles
- * @angles: Target angles in degrees
+ * @param number: Number of servos to set angles
+ * @param motors: Servos to set angles
+ * @param angles: Target angles in degrees
  */
 void servos_set_angle(uint number, servo** motors, float *angles) {
     for(uint i = 0; i < number; i++) {
@@ -154,9 +154,9 @@ void servos_set_angle(uint number, servo** motors, float *angles) {
 /**
  * Smoothly move multiple servos to target angles.
  * 
- * @number: Number of servos to move
- * @motors: Servos to move
- * @angles: Target angles in degrees
+ * @param number: Number of servos to move
+ * @param motors: Servos to move
+ * @param angles: Target angles in degrees
  */
 void servos_smooth(uint number, servo** motors, float *angles) {
     float start_angles[number];
