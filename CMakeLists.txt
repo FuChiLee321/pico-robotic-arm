@@ -60,6 +60,7 @@ target_sources(pico-robotic-arm PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/src/servo_control.c
         ${CMAKE_CURRENT_LIST_DIR}/src/robotic_arm_servo.c
         ${CMAKE_CURRENT_LIST_DIR}/src/robotic_arm_position.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/get_input_string.c
 )
 
 pico_add_extra_outputs(pico-robotic-arm)
