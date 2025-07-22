@@ -2,6 +2,8 @@
 #include "pico/stdlib.h"
 #include "robotic_arm.h"
 #include "string.h"
+#include "get_input_string.h"
+#include <stdlib.h>
 
 #define INPUT_UINT_EXIT -1
 #define INPUT_UINT_INVALID -2
@@ -14,31 +16,18 @@
  */
 int get_input_uint() {
     int number = 0;
-    int input;
-    // Skip whitespace characters
-    do {
-        input = getchar_timeout_us(0);
-        sleep_ms(10); // Sleep to avoid busy waiting
-    } while (input == PICO_ERROR_TIMEOUT || input == ' ' || input == '\n' || input == '\t');
-    switch (input) {
+    char input[10];
+    int len = get_string(input, 10);
+    switch (input[0]) {
     case '0' ... '9': // If input is a digit, start forming the number
-        number = input - '0';
+        number = atoi(input);
         break;
-    case 'q':
-    case 'Q':
+    case 'q': case 'Q':
         return INPUT_UINT_EXIT; // Exit on 'q' or 'Q'
-    case 'p':
-    case 'P':
+    case 'p': case 'P':
         return INPUT_UINT_PRINT; // Print current angles on 'p' or 'P'
     default:
         return INPUT_UINT_INVALID; // Invalid input, return -2
-    }
-    while (true) {
-        input = getchar_timeout_us(0);
-        if (input >= '0' && input <= '9')
-            number = number * 10 + (input - '0');
-        else
-            break; // Break on non-digit input
     }
     return number;
 }
@@ -49,33 +38,17 @@ int get_input_uint() {
  */
 float get_input_float() {
     float number = 0.0f;
-    int input;
-    // Skip whitespace characters
-    do {
-        input = getchar_timeout_us(0);
-        sleep_ms(10); // Sleep to avoid busy waiting
-    } while (input == PICO_ERROR_TIMEOUT || input == ' ' || input == '\n' || input == '\t');
-    if (input >= '0' && input <= '9')
-        number = input - '0';
-    else if (input == 'q' || input == 'Q')
-        return -1.0f;  // If input is 'q' or 'Q', return -1.0f to indicate exit
-    else if(input != '.')
-        return -2.0f;  // Invalid input, return -2.0f
-    while (input >= '0' && input <= '9') {
-        input = getchar_timeout_us(0);
-        if (input >= '0' && input <= '9')
-            number = number * 10 + (input - '0');
-    }
-    if (input != '.')
-        return number; // If no decimal point, return the integer part
-    float decimal_place = 0.1f;
-    while (true) {
-        input = getchar_timeout_us(0);
-        if (input >= '0' && input <= '9') {
-            number += (input - '0') * decimal_place;
-            decimal_place *= 0.1f;
-        } else
-            break;
+    char input[16];
+    int len = get_string(input, 16);
+    switch (input[0]) {
+    case '-':
+    case '0' ... '9':
+        number = atof(input);
+        break;
+    case 'q': case 'Q':
+        return -1.0f;
+    default:
+        return -2.0f;
     }
     return number;
 }
@@ -134,14 +107,9 @@ void robotic_arm_single_servo_mode(robotic_arm* robot_arm) {
         angle = robot_arm->servos[index].angle; // Get current angle of the servo
         printf(angle_tip);
         while (servo_selected) {
-            int command = getchar_timeout_us(0);
-            if (command == PICO_ERROR_TIMEOUT) {
-                sleep_ms(10); // Sleep to avoid busy waiting
-                continue; // No input, continue to next iteration
-            }
+            int command = getchar();
             switch (command) {
-            case 'i': // Increase angle
-            case 'I':
+            case 'i': case 'I':
                 angle += delta_angle;
                 if (angle > robot_arm->servos[index].angle_upper_bound) {
                     angle = robot_arm->servos[index].angle_upper_bound; // Clamp to upper bound
@@ -149,8 +117,7 @@ void robotic_arm_single_servo_mode(robotic_arm* robot_arm) {
                 robotic_arm_move_servo(robot_arm, index, angle);
                 printf("Angle increased to: %.2f\n", angle);
                 break;
-            case 'd': // Decrease angle
-            case 'D':
+            case 'd': case 'D':
                 angle -= delta_angle;
                 if (angle < robot_arm->servos[index].angle_lower_bound) {
                     angle = robot_arm->servos[index].angle_lower_bound; // Clamp to lower bound
@@ -158,8 +125,7 @@ void robotic_arm_single_servo_mode(robotic_arm* robot_arm) {
                 robotic_arm_move_servo(robot_arm, index, angle);
                 printf("Angle decreased to: %.2f\n", angle);
                 break;
-            case 'p': // Print current angle
-            case 'P':
+            case 'p': case 'P':
                 robotic_arm_print(robot_arm);
                 printf("Current selected servo: %d\n", index);
                 printf(show_delta, delta_angle);
@@ -172,13 +138,11 @@ void robotic_arm_single_servo_mode(robotic_arm* robot_arm) {
                 delta_angle /= 2.0f;
                 printf("Delta angle divided to: %.2f\n", delta_angle);
                 break;
-            case 'r': // Reselect servo
-            case 'R':
+            case 'r': case 'R':
                 servo_selected = false; // Exit the inner loop to reselect servo
                 printf(select_tip, robot_arm->number - 1);
                 break;
-            case 'q': // Exit single servo mode
-            case 'Q':
+            case 'q': case 'Q':
                 printf("Exiting single servo mode.\n");
                 return;
             default:
@@ -211,38 +175,37 @@ void robotic_arm_multiple_servo_mode(robotic_arm* robot_arm) {
                          "    'index' is the servo index (0 to %d),\n"
                          "    'angle' is the target angle for that servo.\n"
                          "Enter 'p' to print current angles, or 'q' to exit.\n";
-    printf(command_tip, robot_arm->number - 1);
     while (true) {
+        printf(command_tip, robot_arm->number - 1);
         int input = get_input_uint();
         if (input == INPUT_UINT_EXIT) {
             printf("Exiting multiple servo mode.\n");
             return; // Exit on 'q' or 'Q'
         } else if(input == INPUT_UINT_PRINT) {
             robotic_arm_print(robot_arm);
-            printf(command_tip, robot_arm->number - 1);
             continue; // Print current angles and prompt again
         } else if (input < 1 || input > robot_arm->number) {
             printf("Invalid number of servos. Please the number should between 1 and %d.\n", robot_arm->number);
             do { input = getchar_timeout_us(0); } while (input != PICO_ERROR_TIMEOUT); // Clear input buffer
-            printf(command_tip, robot_arm->number - 1);
             continue; // Invalid input, prompt again
         }
         control_signal.number = (uint8_t)input; // Set number of servos to control
+        bool isFailed = false;
         for (uint8_t i = 0; i < control_signal.number; i++) {
             int index = get_input_uint();
             printf("Selected servo index: %d\n", index);
             if (index < 0 || index >= robot_arm->number) {
+                isFailed = true;
                 printf("Invalid servo index %d. Please enter an index between 0 and %d.\n", index, robot_arm->number - 1);
                 do { index = getchar_timeout_us(0); } while (index != PICO_ERROR_TIMEOUT); // Clear input buffer
-                printf(command_tip, robot_arm->number - 1);
                 break; // Invalid index, prompt again
             }
             control_signal.indexes[i] = (uint8_t)index; // Store servo index
             float angle = get_input_float();
             if(angle < 0.0f) {
+                isFailed = true;
                 printf("Nagetive angle is not allowed.\n");
                 do { index = getchar_timeout_us(0); } while (index != PICO_ERROR_TIMEOUT); // Clear input buffer
-                printf(command_tip, robot_arm->number - 1);
                 break; // Invalid angle, prompt again
             } else if (angle < robot_arm->servos[index].angle_lower_bound) {
                 angle = robot_arm->servos[index].angle_lower_bound; // Clamp to lower bound
@@ -252,6 +215,8 @@ void robotic_arm_multiple_servo_mode(robotic_arm* robot_arm) {
             printf("Selected target angle: %.2f\n", angle);
             control_signal.angles[i] = angle; // Store target angle
         }
+        if(isFailed)
+            continue;
         // Move servos to target angles
         printf("Moving servos to target angles...\n");
         robotic_arm_move(robot_arm, &control_signal);
@@ -287,31 +252,24 @@ void robotic_arm_custom_control_mode(robotic_arm* robot_arm) {
     };
     char action_tip[] = "Enter 'a' to do exam_action, or 'q' to exit.\n";
 
-    printf(action_tip);
     while (true) {
-        int input = getchar_timeout_us(0);
-        if (input == PICO_ERROR_TIMEOUT) {
-            sleep_ms(10); // Sleep to avoid busy waiting
-            continue; // No input, continue to next iteration
-        }
-        switch (input)
-        {
-        case 'a':
-        case 'A':
+        printf(action_tip);
+        int input = getchar();
+        switch (input) {
+        case 'a': case 'A':
+            printf("Moving action A.\n");
             for(int i = 0; i < sizeof(exam_action) / sizeof(exam_action[0]); i++) {
                 robotic_arm_signal_from_string(&control_signal, exam_action[i]);
                 robotic_arm_move(robot_arm, &control_signal);
                 sleep_ms(100);
             }
+            printf("Action A complete.\n");
             break;
-        case 'q':
-        case 'Q':
+        case 'q': case 'Q':
             printf("Exiting custom control mode.\n");
             return; // Exit on 'q' or 'Q'
         default:
             printf("Invalid command. Please enter 'a' for action or 'q' to exit.\n");
-            printf(action_tip); // Prompt again for valid command
-            continue; // Continue to next iteration
         }
     }
 }
@@ -349,31 +307,23 @@ int main()
     printf(mode_tip);
 
     while (true) {
-        int command = getchar_timeout_us(0);
-        if (command == PICO_ERROR_TIMEOUT) {
-            sleep_ms(100);  // Sleep to avoid busy waiting
-            continue;
-        }
+        int command = getchar();
 
         switch (command) {
         // Single servo control commands
-        case 's':
-        case 'S':
+        case 's': case 'S':
             robotic_arm_single_servo_mode(robot_arm);
             break;
         // Multiple servo control commands
-        case 'm':
-        case 'M':
+        case 'm': case 'M':
             robotic_arm_multiple_servo_mode(robot_arm);
             break;
         // Costom servo control commands
-        case 'c':
-        case 'C':
+        case 'c': case 'C':
             robotic_arm_custom_control_mode(robot_arm);
             break;
         // Print current angles of all servos
-        case 'p':
-        case 'P':
+        case 'p': case 'P':
             robotic_arm_print(robot_arm);
             break;
         default:
